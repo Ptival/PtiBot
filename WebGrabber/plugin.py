@@ -43,6 +43,32 @@ class WebGrabber(callbacks.Plugin):
     """Grabs random stuff from the internetz!"""
     threaded = True
 
+    def javadoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a Java Doc page."""
+        url = ('http://www.google.com/search?q=site%3Adownload.oracle.com' +
+               '%2Fjavase%2F6%2Fdocs%2F+' + string.replace(req, ' ', '+'))
+        user_agent = ('Mozilla/5.0 (X11; U; Linux x86_64; en-US)' +
+        'AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.133' +
+        'Safari/534.16')
+        headers = {'User-Agent':user_agent,}
+        request = urllib2.Request(url,None,headers)
+        try:
+            website = urllib2.urlopen(request)
+        except urllib2.HTTPError, e:
+            irc.reply('A problem occured. Please try again.' + ' ' +
+                      str(e.code))
+            return
+        soup = BeautifulSoup(website,
+                             convertEntities=BeautifulSoup.HTML_ENTITIES)
+        sites = soup.findAll(name='h3',
+                             attrs={'class':'r'},
+                             limit=num)
+        for s in sites:
+            url = s.contents[0]['href']
+            irc.reply(url)
+
+    javadoc = wrap(javadoc, [optional('int', 1), additional('text')])
+
     def urbandic(self, irc, msg, args):
         """- Grabs a random Urban Dictionary definition."""
         url = 'http://www.urbandictionary.com/random.php'

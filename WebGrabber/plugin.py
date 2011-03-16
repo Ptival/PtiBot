@@ -43,7 +43,19 @@ class WebGrabber(callbacks.Plugin):
     """Grabs random stuff from the internetz!"""
     threaded = True
 
-    def google(self, domain, query, num):
+    def cppdoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a C++ reference page (using Google)."""
+        self.googleq('www.cplusplus.com/reference/', req, num, irc)
+
+    cppdoc = wrap(cppdoc, [optional('int', 1), additional('text')])
+
+    def google(self, irc, msg, args, num, req):
+        """[<num>] <query> - Google search."""
+        self.googleq('', req, num, irc)
+
+    google = wrap(google, [optional('int', 1), additional('text')])
+
+    def googleq(self, domain, query, num, irc):
         dict = {':':'%3A',
                 '/':'%2F',
                 ' ':'+'}
@@ -56,44 +68,49 @@ class WebGrabber(callbacks.Plugin):
         'Safari/534.16')
         headers = {'User-Agent':user_agent,}
         request = urllib2.Request(url,None,headers)
-        website = urllib2.urlopen(request)
+        try:
+            website = urllib2.urlopen(request)
+        except urllib2.HTTPError, e:
+            irc.reply('A problem occured. Please try again.')
+            return
         soup = BeautifulSoup(website,
                              convertEntities=BeautifulSoup.HTML_ENTITIES)
         sites = soup.findAll(name='h3',
                              attrs={'class':'r'},
                              limit=num)
-        return sites
+        for s in sites:
+            url = s.contents[0]['href']
+            irc.reply(url)
 
     def javadoc(self, irc, msg, args, num, req):
         """[<num>] <query> - Finds a Java Doc page (using Google)."""
-        try:
-            sites = self.google('download.oracle.com/javase/6/docs/',
-                                req,
-                                num)
-        except urllib2.HTTPError, e:
-            irc.reply('A problem occured. Please try again.')
-            return
-        for s in sites:
-            url = s.contents[0]['href']
-            irc.reply(url)
+        self.googleq('download.oracle.com/javase/6/docs/', req, num, irc)
 
     javadoc = wrap(javadoc, [optional('int', 1), additional('text')])
 
+    def lispdoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a Lisp Doc page (using Google)."""
+        self.googleq('http://lispdoc.com/', req, num, irc)
+
+    lispdoc = wrap(lispdoc, [optional('int', 1), additional('text')])
+
+    def man3(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a man 3 page (using Google)."""
+        self.googleq('http://linux.die.net/man/3/', req, num, irc)
+
+    man3 = wrap(man3, [optional('int', 1), additional('text')])
+
     def phpdoc(self, irc, msg, args, num, req):
         """[<num>] <query> - Finds a PHP Doc page (using Google)."""
-        try:
-            sites = self.google('http://php.net/manual/en/',
-                                req,
-                                num)
-        except urllib2.HTTPError, e:
-            irc.reply('A problem occured. Please try again.')
-            return
-        for s in sites:
-            url = s.contents[0]['href']
-            irc.reply(url)
+        self.googleq('http://php.net/manual/en/', req, num, irc)
 
     phpdoc = wrap(phpdoc, [optional('int', 1), additional('text')])
 
+    def pythondoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a Python library page (using Google)."""
+        self.googleq('http://docs.python.org/library/', req, num, irc)
+
+    pythondoc = wrap(pythondoc, [optional('int', 1), additional('text')])
 
     def replace_all(self, text, dic):
         for i, j in dic.iteritems():

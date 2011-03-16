@@ -43,20 +43,28 @@ class WebGrabber(callbacks.Plugin):
     """Grabs random stuff from the internetz!"""
     threaded = True
 
-    def javadoc(self, irc, msg, args, num, req):
-        """[<num>] <query> - Finds a Java Doc page."""
-        url = ('http://www.google.com/search?q=site%3Adownload.oracle.com' +
-               '%2Fjavase%2F6%2Fdocs%2F+' + string.replace(req, ' ', '+'))
+    def google(self, domain, query):
+        dict = {':':'%3A',
+                '/':'%2F',
+                ' ':'+'}
+        domain = self.replace_all(domain, dict)
+        query = self.replace_all(query, dict)
+        url = ('http://www.google.com/search?q=site%3A' +
+               domain + '+' + query)
         user_agent = ('Mozilla/5.0 (X11; U; Linux x86_64; en-US)' +
         'AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.133' +
         'Safari/534.16')
         headers = {'User-Agent':user_agent,}
         request = urllib2.Request(url,None,headers)
+        website = urllib2.urlopen(request)
+        return website
+
+    def javadoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a Java Doc page."""
         try:
-            website = urllib2.urlopen(request)
+            website = self.google('download.oracle.com/javase/6/docs/', req)
         except urllib2.HTTPError, e:
-            irc.reply('A problem occured. Please try again.' + ' ' +
-                      str(e.code))
+            irc.reply('A problem occured. Please try again.')
             return
         soup = BeautifulSoup(website,
                              convertEntities=BeautifulSoup.HTML_ENTITIES)
@@ -68,6 +76,11 @@ class WebGrabber(callbacks.Plugin):
             irc.reply(url)
 
     javadoc = wrap(javadoc, [optional('int', 1), additional('text')])
+
+    def replace_all(self, text, dic):
+        for i, j in dic.iteritems():
+            text = text.replace(i, j)
+        return text
 
     def urbandic(self, irc, msg, args):
         """- Grabs a random Urban Dictionary definition."""

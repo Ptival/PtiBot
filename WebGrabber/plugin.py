@@ -43,6 +43,20 @@ class WebGrabber(callbacks.Plugin):
     """Grabs random stuff from the internetz!"""
     threaded = True
 
+    def bdg(self, irc, msg, args):
+        """- Grabs a joke from Blagues de geek."""
+        joke = self.fetchtags(irc, 'http://www.blaguesdegeek.com/aleatoire.html',
+                              'p', {'class':'contenu'}, 1)
+        for l in joke[0].contents:
+            if l.string:
+                line = l.string.encode('utf-8')
+                line = string.replace(line, '\n', '')
+                line = string.replace(line, '\r', '')
+                if line != '':
+                    irc.reply(line, prefixNick=False)
+
+    bdg = wrap(bdg)
+
     def cppdoc(self, irc, msg, args, num, req):
         """[<num>] <query> - Finds a C++ reference page (using Google)."""
         self.googleq('www.cplusplus.com/reference/', req, num, irc)
@@ -131,7 +145,7 @@ class WebGrabber(callbacks.Plugin):
         return text
 
     def savoir(self, irc, msg, args):
-        """- Grabs a random Savoir Inutile."""
+        """- Grabs a random statement from Savoir Inutile."""
         h2 = self.fetchtags(irc, 'http://www.savoir-inutile.com/', 'h2',
                             {'id':'phrase'}, 1)
         irc.reply(h2[0].string, prefixNick=False)

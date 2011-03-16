@@ -65,7 +65,7 @@ class WebGrabber(callbacks.Plugin):
         return sites
 
     def javadoc(self, irc, msg, args, num, req):
-        """[<num>] <query> - Finds a Java Doc page."""
+        """[<num>] <query> - Finds a Java Doc page (using Google)."""
         try:
             sites = self.google('download.oracle.com/javase/6/docs/',
                                 req,
@@ -80,7 +80,7 @@ class WebGrabber(callbacks.Plugin):
     javadoc = wrap(javadoc, [optional('int', 1), additional('text')])
 
     def phpdoc(self, irc, msg, args, num, req):
-        """[<num>] <query> - Finds a PHP Doc page."""
+        """[<num>] <query> - Finds a PHP Doc page (using Google)."""
         try:
             sites = self.google('http://php.net/manual/en/',
                                 req,

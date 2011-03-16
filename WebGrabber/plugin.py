@@ -45,15 +45,13 @@ class WebGrabber(callbacks.Plugin):
 
     def bdg(self, irc, msg, args):
         """- Grabs a joke from Blagues de geek."""
-        joke = self.fetchtags(irc, 'http://www.blaguesdegeek.com/aleatoire.html',
+        joke = self.fetchtags(irc,
+                              'http://www.blaguesdegeek.com/aleatoire.html',
                               'p', {'class':'contenu'}, 1)
         for l in joke[0].contents:
             if l.string:
-                line = l.string.encode('utf-8')
-                line = string.replace(line, '\n', '')
-                line = string.replace(line, '\r', '')
                 if line != '':
-                    irc.reply(line, prefixNick=False)
+                    irc.reply(self.sanitize(line), prefixNick=False)
 
     bdg = wrap(bdg)
 
@@ -144,11 +142,16 @@ class WebGrabber(callbacks.Plugin):
             text = text.replace(i, j)
         return text
 
+    def sanitize(self, string):
+        string = string.encode('utf-8')
+        string = self.replace_all(string, {'\r':'', '\n':''})
+        return string
+
     def savoir(self, irc, msg, args):
         """- Grabs a random statement from Savoir Inutile."""
         h2 = self.fetchtags(irc, 'http://www.savoir-inutile.com/', 'h2',
                             {'id':'phrase'}, 1)
-        irc.reply(h2[0].string, prefixNick=False)
+        irc.reply(self.sanitize(h2[0].string), prefixNick=False)
 
     savoir = wrap(savoir)
 

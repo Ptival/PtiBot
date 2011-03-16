@@ -43,7 +43,7 @@ class WebGrabber(callbacks.Plugin):
     """Grabs random stuff from the internetz!"""
     threaded = True
 
-    def google(self, domain, query):
+    def google(self, domain, query, num):
         dict = {':':'%3A',
                 '/':'%2F',
                 ' ':'+'}
@@ -57,25 +57,43 @@ class WebGrabber(callbacks.Plugin):
         headers = {'User-Agent':user_agent,}
         request = urllib2.Request(url,None,headers)
         website = urllib2.urlopen(request)
-        return website
-
-    def javadoc(self, irc, msg, args, num, req):
-        """[<num>] <query> - Finds a Java Doc page."""
-        try:
-            website = self.google('download.oracle.com/javase/6/docs/', req)
-        except urllib2.HTTPError, e:
-            irc.reply('A problem occured. Please try again.')
-            return
         soup = BeautifulSoup(website,
                              convertEntities=BeautifulSoup.HTML_ENTITIES)
         sites = soup.findAll(name='h3',
                              attrs={'class':'r'},
                              limit=num)
+        return sites
+
+    def javadoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a Java Doc page."""
+        try:
+            sites = self.google('download.oracle.com/javase/6/docs/',
+                                req,
+                                num)
+        except urllib2.HTTPError, e:
+            irc.reply('A problem occured. Please try again.')
+            return
         for s in sites:
             url = s.contents[0]['href']
             irc.reply(url)
 
     javadoc = wrap(javadoc, [optional('int', 1), additional('text')])
+
+    def phpdoc(self, irc, msg, args, num, req):
+        """[<num>] <query> - Finds a PHP Doc page."""
+        try:
+            sites = self.google('http://php.net/manual/en/',
+                                req,
+                                num)
+        except urllib2.HTTPError, e:
+            irc.reply('A problem occured. Please try again.')
+            return
+        for s in sites:
+            url = s.contents[0]['href']
+            irc.reply(url)
+
+    phpdoc = wrap(phpdoc, [optional('int', 1), additional('text')])
+
 
     def replace_all(self, text, dic):
         for i, j in dic.iteritems():

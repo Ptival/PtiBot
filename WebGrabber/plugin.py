@@ -55,6 +55,19 @@ class WebGrabber(callbacks.Plugin):
 
     google = wrap(google, [optional('int', 1), additional('text')])
 
+    def fetchtags(self, irc, req, name, attrs, num):
+        try:
+            website = urllib2.urlopen(req)
+        except urllib2.HTTPError, e:
+            irc.reply('A problem occured. Please try again.')
+            return
+        soup = BeautifulSoup(website,
+                             convertEntities=BeautifulSoup.HTML_ENTITIES)
+        tags = soup.findAll(name=name,
+                            attrs=attrs,
+                            limit=num)
+        return tags
+
     def googleq(self, domain, query, num, irc):
         dict = {':':'%3A',
                 '/':'%2F',
@@ -63,8 +76,8 @@ class WebGrabber(callbacks.Plugin):
         query = self.replace_all(query, dict)
         url = ('http://www.google.com/search?q=site%3A' +
                domain + '+' + query)
-        user_agent = ('Mozilla/5.0 (X11; U; Linux x86_64; en-US)' +
-        'AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.133' +
+        user_agent = ('Mozilla/5.0 (X11; U; Linux x86_64; en-US) ' +
+        'AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.133 ' +
         'Safari/534.16')
         headers = {'User-Agent':user_agent,}
         request = urllib2.Request(url,None,headers)
@@ -116,6 +129,14 @@ class WebGrabber(callbacks.Plugin):
         for i, j in dic.iteritems():
             text = text.replace(i, j)
         return text
+
+    def savoir(self, irc, msg, args):
+        """- Grabs a random Savoir Inutile."""
+        h2 = self.fetchtags(irc, 'http://www.savoir-inutile.com/', 'h2',
+                            {'id':'phrase'}, 1)
+        irc.reply(h2[0].string, prefixNick=False)
+
+    savoir = wrap(savoir)
 
     def urbandic(self, irc, msg, args):
         """- Grabs a random Urban Dictionary definition."""

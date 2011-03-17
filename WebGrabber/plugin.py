@@ -50,8 +50,8 @@ class WebGrabber(callbacks.Plugin):
                               'p', {'class':'contenu'}, 1)
         for l in joke[0].contents:
             if l.string:
-                if line != '':
-                    irc.reply(self.sanitize(line), prefixNick=False)
+                if l != '':
+                    irc.reply(self.sanitize(l), prefixNick=False)
 
     bdg = wrap(bdg)
 

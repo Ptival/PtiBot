@@ -169,9 +169,14 @@ class WebGrabber(callbacks.Plugin):
 
     savoir = wrap(savoir)
 
-    def urbandic(self, irc, msg, args):
+    def urbandic(self, irc, msg, args, req):
         """- Grabs a random Urban Dictionary definition."""
-        url = 'http://www.urbandictionary.com/random.php'
+        dict = {' ':'+'}
+        req = self.replace_all(req, dict)
+        if req:
+            url = 'http://www.urbandictionary.com/define.php?term=' + req
+        else:
+            url = 'http://www.urbandictionary.com/random.php'
         try:
             website = urllib2.urlopen(url)
         except urllib2.HTTPError, e:
@@ -186,8 +191,12 @@ class WebGrabber(callbacks.Plugin):
                                attrs={'class':'definition'},
                                limit=1)
         for t in td_word:
-            word = string.replace(t.string, '\n', '')
-            irc.reply('Word: ' + word, prefixNick=False)
+            if t.string:
+                word = string.replace(t.string, '\n', '')
+                irc.reply('Word: ' + word, prefixNick=False)
+            else:
+                irc.reply('No word found.')
+                return
         defn = ''
         for d in div_def:
             for c in d.contents:
@@ -195,7 +204,7 @@ class WebGrabber(callbacks.Plugin):
                     defn += c.string
         irc.reply('Def.: ' + defn, prefixNick=False)
 
-    urbandic = wrap(urbandic)
+    urbandic = wrap(urbandic, [optional('text')])
 
 Class = WebGrabber
 

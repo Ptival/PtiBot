@@ -44,7 +44,7 @@ class WebGrabber(callbacks.Plugin):
     threaded = True
 
     def bdg(self, irc, msg, args):
-        """- Grabs a joke from Blagues de geek."""
+        """- Grabs a (usually not funny...) joke from Blagues de geek."""
         joke = self.fetchtags(irc,
                               'http://www.blaguesdegeek.com/aleatoire.html',
                               'p', {'class':'contenu'}, 1)
@@ -137,6 +137,19 @@ class WebGrabber(callbacks.Plugin):
         self.googleq('http://docs.python.org/library/', req, num, irc)
 
     pythondoc = wrap(pythondoc, [optional('int', 1), additional('text')])
+
+    def qdb(self, irc, msg, args):
+        """- Grabs a joke from QDB."""
+        quote = self.fetchtags(irc,
+                               'http://www.qdb.us/random',
+                               'span', {'class':'qt'}, 1)
+        for l in quote[0].contents:
+            if l.string:
+                l = self.sanitize(l)
+                if l != '':
+                    irc.reply(l, prefixNick=False)
+
+    qdb = wrap(qdb)
 
     def replace_all(self, text, dic):
         for i, j in dic.iteritems():
